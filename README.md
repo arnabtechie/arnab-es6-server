@@ -1,8 +1,6 @@
 # arnab-dev-server (on es6)
 
 Node.js, Express, MongoDB, Mongoose, Pug 😁
-Build on ES6 modules
-
 Required node version atleast 12.x
 
 Follow steps before running the project.
