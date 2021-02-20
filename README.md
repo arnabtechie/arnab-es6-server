@@ -1,4 +1,4 @@
-# arnab-dev-server
+# arnab-dev-server (on es6)
 
 Node.js, Express, MongoDB, Mongoose, Pug 😁
 Build on ES6 modules
