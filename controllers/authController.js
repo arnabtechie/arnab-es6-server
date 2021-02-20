@@ -5,7 +5,7 @@ import User from './../models/userModel.js';
 import { check, validationResult } from 'express-validator';
 import catchAsync from './../utils/catchAsync.js';
 import AppError from './../utils/appError.js';
-import Email from './../utils/email.js';
+import mailer from './../utils/email.js';
 
 const signToken = id => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -52,9 +52,10 @@ export default {
       passwordConfirm: req.body.passwordConfirm
     });
   
-    const url = `${req.protocol}://${req.get('host')}/me`;
     // console.log(url);
-    new Email(newUser, url).sendWelcome();
+    mailer('welcomeMaiil')(user.username, {
+      NAME: user.name,
+    }).send();
   
     createSendToken(newUser, 201, req, res);
   }),
@@ -191,13 +192,18 @@ export default {
       const resetURL = `${req.protocol}://${req.get(
         'host'
       )}/api/v1/users/resetPassword/${resetToken}`;
-      await new Email(user, resetURL).sendPasswordReset();
-  
+
+      mailer('forgotPasswordMail')(user.username, {
+        NAME: user.name,
+        LINK: resetURL
+      }).send();
+
       return res.status(200).json({
         status: 'success',
         message: 'Token sent to email!'
       });
     } catch (err) {
+      console.log(err);
       user.passwordResetToken = undefined;
       user.passwordResetExpires = undefined;
       await user.save({ validateBeforeSave: false });

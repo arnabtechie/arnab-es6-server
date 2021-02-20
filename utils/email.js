@@ -1,17 +1,21 @@
 import nodemailer from 'nodemailer';
-import pug from 'pug';
-import { htmlToText } from 'html-to-text';
+import welcomeMail from './../views/email/welcome.js';
+import forgotPasswordMail from './../views/email/forgotPassword.js';
 
-export default class Email {
-  constructor(user, url) {
-    this.to = user.username;
-    this.name = user.name;
-    this.url = url;
-    this.from = `Arnab Development Server <${process.env.EMAIL_FROM}>`;
-  }
 
-  newTransport() {
-    return nodemailer.createTransport({
+export default (mailType) => {
+    const mailDict = {
+        "forgotPasswordMail" :{
+            subject : "Reset Password",
+            html    : forgotPasswordMail
+        },
+        "welcomeMail" :{
+            subject : "Welcome greetings",
+            html    : welcomeMail
+        },
+    }
+
+    const transporter = nodemailer.createTransport({
       host: process.env.EMAIL_HOST,
       port: process.env.EMAIL_PORT,
       auth: {
@@ -19,40 +23,72 @@ export default class Email {
         pass: process.env.EMAIL_PASSWORD
       }
     });
-  }
 
-  // Send the actual email
-  async send(template, subject) {
-    // 1) Render HTML based on a pug template
-    console.log(__dirname);    
-    const html = pug.renderFile(`${__dirname}/views/email/${template}.pug`, {
-      firstName: this.firstName,
-      url: this.url,
-      subject
-    });
+    return (to, data) => {
+        const self =  {
+            send: () => {
+                const mailOptions   = mailDict[mailType];
+                mailOptions.from    = "Arnab Banerjee"+"<"+process.env.EMAIL_HOST+">";;
+                mailOptions.to      = to;
+                mailOptions.html    = self.handleVars(mailOptions.html, data);
 
-    // 2) Define email options
-    const mailOptions = {
-      from: this.from,
-      to: this.to,
-      subject,
-      html,
-      text: htmlToText.fromString(html)
-    };
+                transporter.sendMail(mailOptions, function(error, info){
+                    if(error){
+                        console.log('Error sending mail');
+                        console.log(error);
+                        return ;
+                    }
+                    console.log('Message sent: ' + info.response);
+                });
+            },
+            transporter : transporter,
+            getMappedValue : (s, o) => {
+                let l = s.split(".");
+                let r = o;
+                if(l.length > 0) {
+                    l.forEach(function(v, i) {
+                        if(v && r[v] !== undefined) {
+                            r = r[v];
+                        }
+                    })
+                    return r;
+                }
+                return undefined;
+            },
+            handleVars : (html, o) => {
+                (html.match(/\{\{\s+([^}]*)\s+\}\}/g) || []).forEach((w, i) => {
+                    let s = w.replace(/^\{\{\s+/, "").replace(/\s+\}\}$/, "");
+                    let v = self.getMappedValue(s, o);
 
-    // 3) Create a transport and send email
-    await this.newTransport().sendMail(mailOptions);
-  }
-
-  async sendWelcome() {
-    await this.send('welcome', 'Welcome to the Natours Family!');
-  }
-
-  async sendPasswordReset() {
-    console.log(this.from);
-    await this.send(
-      'passwordReset',
-      'Your password reset token (valid for only 10 minutes)'
-    );
-  }
-};
+                    // handle special cases that need processing
+                    // date
+                    if(s === 'publishedDate' && v != undefined) {
+                        // locale format date
+                        v = new Date(v).toString();
+                    }
+                    if(s==='@validUpto' && v ===null){
+                        v = 'NA';
+                    }
+                    if(s==='@userTotalSpace' && v===null){
+                        v=0;
+                    }
+                    if(s==='@userFreeSpace' && v===null){
+                        v=0;
+                    }
+                    if(s==='@currentPlan' && v===null){
+                        v='Freedom';
+                    }
+                    if(s==='@userJunkSpace' && v===null){
+                        v=0;
+                    }
+                    // replace
+                    if(v !== undefined) {
+                        html = html.replace(w, String(v));
+                    }
+                })
+                return html;
+            },
+        };
+        return self;
+    }
+}
