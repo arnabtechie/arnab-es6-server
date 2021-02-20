@@ -6,6 +6,7 @@ import { check, validationResult } from 'express-validator';
 import catchAsync from './../utils/catchAsync.js';
 import AppError from './../utils/appError.js';
 import mailer from './../utils/email.js';
+import { fail } from 'assert';
 
 const signToken = id => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -110,9 +111,10 @@ export default {
     }
   
     if (!token) {
-      return next(
-        new AppError('You are not logged in! Please log in to get access.', 401)
-      );
+      return res.status(401).send({
+        status: 'fail',
+        error: 'you are not logged in! please log in to get access'
+      })
     }
   
     // 2) Verification token
