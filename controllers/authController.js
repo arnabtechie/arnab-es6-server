@@ -6,7 +6,6 @@ import { check, validationResult } from 'express-validator';
 import catchAsync from './../utils/catchAsync.js';
 import AppError from './../utils/appError.js';
 import mailer from './../utils/email.js';
-import { fail } from 'assert';
 
 const signToken = id => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {

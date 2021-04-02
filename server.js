@@ -10,7 +10,7 @@ process.on('uncaughtException', err => {
 dotenv.config({ path: './config.env' });
 import app from './app.js';
 
-const DB = 'mongodb://127.0.0.1:27017/ApiServer';
+const DB = process.env.DB || 'mongodb://127.0.0.1:27017/ApiServer';
 
 mongoose
   .connect(DB, {

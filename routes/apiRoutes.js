@@ -4,7 +4,7 @@ import authController from '../controllers/authController.js';
 
 const router = express.Router();
 
-//-----------------------------------------UnAuthenticated-------------------------------------------------//
+//-----------------------------------------Unauthenticated-------------------------------------------------//
 router.post('/users/signup',
   [check('name', 'Please enter name.').not().isEmpty(),
   check('username', 'Please enter valid username').isEmail(),
