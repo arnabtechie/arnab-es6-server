@@ -3,6 +3,7 @@ import welcomeMail from './../views/email/welcome.js';
 import forgotPasswordMail from './../views/email/forgotPassword.js';
 import dotenv from 'dotenv';
 
+
 dotenv.config({ path: './../config.env' });
 
 
