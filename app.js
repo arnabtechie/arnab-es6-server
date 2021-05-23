@@ -52,7 +52,7 @@ app.use(session({
   resave: false,
   rolling: true,
   saveUninitialized: true,
-  secret: config.SECRET_KEY,
+  secret: process.env.SECRET_KEY,
   cookie: {
       secureProxy: true,
       httpOnly: true,
