@@ -7,7 +7,7 @@ import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import mongoSanitize from 'express-mongo-sanitize';
 import xss from 'xss-clean';
-import cookieParser from 'cookie-parser';
+import session from 'cookie-parser';
 import compression from 'compression';
 import http from 'http';
 import { Server } from "socket.io";
@@ -24,7 +24,7 @@ const io = new Server(server, {cors: {origin: '*'}});
 
 app.enable('trust proxy');
 
-app.use(cors('*'));
+app.use(cors());
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 app.use(express.static(path.join(__dirname, 'public')));
@@ -48,7 +48,17 @@ app.use('/api', limiter);
 
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
-app.use(cookieParser());
+app.use(session({ 
+  resave: false,
+  rolling: true,
+  saveUninitialized: true,
+  secret: config.SECRET_KEY,
+  cookie: {
+      secureProxy: true,
+      httpOnly: true,
+      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+  }
+}))
 
 app.use(mongoSanitize());
 
@@ -61,7 +71,10 @@ app.use('/api/v1', apiRoutes);
 app.use(globalErrorHandler);
 
 app.use((req, res, next) => {
-  return res.status(404).send({status: 'fail', errors: '404 not found'});
+  return res.status(404).send({
+    status: 'fail',
+    errors: '404 not found'
+  });
 });
 
 io.use((socket, next) => {
