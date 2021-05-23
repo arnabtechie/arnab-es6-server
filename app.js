@@ -10,11 +10,14 @@ import xss from 'xss-clean';
 import session from 'cookie-parser';
 import compression from 'compression';
 import http from 'http';
+import dotenv from 'dotenv';
 import { Server } from "socket.io";
 import cors from 'cors';
 import AppError from './utils/appError.js';
 import apiRoutes from './routes/apiRoutes.js';
 import globalErrorHandler from './controllers/errorController.js';
+
+dotenv.config({ path: './config.env' });
 
 const app = express();
 
@@ -52,7 +55,7 @@ app.use(session({
   resave: false,
   rolling: true,
   saveUninitialized: true,
-  secret: process.env.SECRET_KEY,
+  secret: process.env.JWT_SECRET,
   cookie: {
       secureProxy: true,
       httpOnly: true,
