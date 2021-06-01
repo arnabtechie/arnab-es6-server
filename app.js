@@ -101,4 +101,4 @@ io.on('connection', async (socket, next) => {
   })
 })
 
-export default app;
+export default {app, server};
